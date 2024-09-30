@@ -1,14 +1,19 @@
-# Usando a imagem oficial do OpenJDK 21
-FROM openjdk:21-jdk-slim
+# Etapa 1: Build (compilar o projeto usando Maven)
+FROM maven:3.9.2-eclipse-temurin-17 AS build
 
-# Define o diretório de trabalho no contêiner
 WORKDIR /app
 
-# Copia o arquivo JAR gerado pelo Maven para o contêiner
-COPY target/*.jar app.jar
+COPY pom.xml .
+RUN mvn dependency:go-offline
 
-# Porta a ser exposta (lembrar que cada serviço usará uma porta diferente)
-EXPOSE 8081
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Comando para rodar a aplicação
+# Etapa 2: Runtime
+FROM eclipse-temurin:17-jre
+
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
+
+EXPOSE 8083
 ENTRYPOINT ["java", "-jar", "app.jar"]
