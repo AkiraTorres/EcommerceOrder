@@ -1,0 +1,46 @@
+services:
+  activemq:
+    image: rmohr/activemq
+    container_name: activemq
+    ports:
+      - "61616:61616"
+      - "8161:8161"
+    environment:
+      ACTIVEMQ_ADMIN_LOGIN: admin
+      ACTIVEMQ_ADMIN_PASSWORD: admin
+
+  pedidos-service:
+    build:
+      context: ./Pedidos
+      dockerfile: Dockerfile
+    container_name: pedidos-service
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_ACTIVEMQ_BROKER-URL=tcp://activemq:61616
+    depends_on:
+      - activemq
+
+  estoque-service:
+    build:
+      context: ./Estoque
+      dockerfile: Dockerfile
+    container_name: estoque-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_ACTIVEMQ_BROKER-URL=tcp://activemq:61616
+    depends_on:
+      - activemq
+
+  pagamentos-service:
+    build:
+      context: ./Pagamentos
+      dockerfile: Dockerfile
+    container_name: pagamentos-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_ACTIVEMQ_BROKER-URL=tcp://activemq:61616
+    depends_on:
+      - activemq
